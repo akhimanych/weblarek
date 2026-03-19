@@ -29,10 +29,23 @@ const testProduct: IProduct = {
 console.log(' ModelProductList: изначально', productList.getItems());
 productList.setItems([testProduct]);
 console.log(' ModelProductList: после setItems', productList.getItems());
+console.log(' ModelProductList: getItemById', productList.getItemById('test1'));
+
+//  Тест selectedItem
 console.log(
-	'🔍 ModelProductList: getItemById',
-	productList.getItemById('test1')
+	' ModelProductList: selected изначально',
+	productList.getSelectedItem()
 );
+const selectedProduct = productList.getItemById('test1');
+if (selectedProduct) {
+	productList.setSelectedItem(selectedProduct);
+	console.log(
+		' ModelProductList: текущий выбранный товар getSelectedItem()',
+		productList.getSelectedItem()
+	);
+} else {
+	console.warn(' Тестовый товар не найден');
+}
 
 // ModelCart
 console.log(

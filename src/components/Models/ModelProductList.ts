@@ -24,9 +24,9 @@ export class ModelProductList {
     }
 
     //устанавливает текущий выбранный продукт
-    setSelectedItem(id: string): void {
-        this.selectedItem = this.getItemById(id) || null;
-        this.events.emit('product:selected', this.selectedItem);
+    setSelectedItem(item: IProduct): void {
+        this.selectedItem = item;
+        this.events.emit('product:selected', item);
     }
 
     //возвращает текущий выбранный продукт
