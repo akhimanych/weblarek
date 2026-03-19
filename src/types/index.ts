@@ -9,11 +9,15 @@ export interface IProduct {
 }
 
 // Данные покупателя
-export interface IOrder {
+export interface IBuyer {
 	payment: TOrderPayment;
+	address: string;
 	email: string;
 	phone: string;
-	address: string;
+}
+
+// Заказ (данные покупателя + итог и список товаров)
+export interface IOrder extends IBuyer {
 	total: number;
 	items: string[];
 }
@@ -24,11 +28,25 @@ export interface IOrderInfo {
 	total: number;
 }
 
-// Ответ с сервера
+// Ответ с сервера с товарами
 export interface IGetProductListResponce {
 	total: number;
-	items: TProductList;
+	items: IProduct[];
+}
+
+export interface IModelOrder {
+	payment: TOrderPayment | null;
+	email: string;
+	phone: string;
+	address: string;
+}
+
+export interface IValidationErrors {
+	payment?: string;
+	address?: string;
+	email?: string;
+	phone?: string;
 }
 
 export type TOrderPayment = 'online' | 'upon_receipt';
-export type TProductList = [IProduct];
+export type TProductList = IProduct[];

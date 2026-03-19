@@ -6,6 +6,7 @@ import { CDN_URL, API_URL } from './utils/constants';
 import { ModelProductList } from './components/Models/ModelProductList';
 import { ModelCart } from './components/Models/ModelCart';
 import { ModelOrder } from './components/Models/ModelOrder';
+
 // Экземпляры
 const events = new EventEmitter();
 const productList = new ModelProductList(events);
@@ -62,6 +63,19 @@ modelOrder.setPayment('upon_receipt');
 console.log(' ModelOrder: заполнен', modelOrder.getOrder());
 modelOrder.clearOrder();
 console.log(' ModelOrder: очищен', modelOrder.getOrder());
+
+// ===== ТЕСТЫ ВАЛИДАЦИИ ModelOrder (строка 65) =====
+console.log('ModelOrder: валидация пустого', modelOrder.validateOrder()); // false
+
+// Полностью валидный
+modelOrder.setEmail('test@test.ru');
+modelOrder.setPhone('+79991234567');
+modelOrder.setAddress('ул. Тест, 1');
+modelOrder.setPayment('upon_receipt');
+console.log('ModelOrder: валидация полного', modelOrder.validateOrder()); // true
+
+modelOrder.clearOrder();
+console.log('ModelOrder: после clear валидация', modelOrder.validateOrder()); // false
 
 // ===== АПИ =====
 console.log(' Запрос к API...');
