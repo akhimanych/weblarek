@@ -1,49 +1,42 @@
-
-export abstract class Component<T> {
+    export abstract class Component<T> {
     protected constructor(protected readonly container: HTMLElement) {
+        // Учитывайте что код в конструкторе исполняется ДО всех объявлений в дочернем классе
     }
 
-    // Набор вспомогательных методов для работы с DOM
+    // Инструментарий для работы с DOM в дочерних компонентах
 
-    // Переключить состояние класса 
-    toggleClass(element: HTMLElement, className: string, force?: boolean): void {
+    // Переключить класс
+    toggleClass(element: HTMLElement, className: string, force?: boolean) {
         element.classList.toggle(className, force);
     }
 
-    // Установить текст элемента
-    protected setText(element: HTMLElement | null, value: unknown): void {
+    // Установить текстовое содержимое
+    protected setText(element: HTMLElement, value: unknown) {
         if (element) {
             element.textContent = String(value);
         }
     }
 
-    // Переключить блокировку элемента
-    setDisabled(element: HTMLElement | null, state: boolean): void {
+    // Сменить статус блокировки
+    setDisabled(element: HTMLElement, state: boolean) {
         if (element) {
-            if (state) {
-                element.setAttribute('disabled', 'disabled');
-            } else {
-                element.removeAttribute('disabled');
-            }
+            if (state) element.setAttribute('disabled', 'disabled');
+            else element.removeAttribute('disabled');
         }
     }
 
     // Скрыть
-    protected setHidden(element: HTMLElement | null): void {
-        if (element) {
-            element.style.display = 'none';
-        }
+    protected setHidden(element: HTMLElement) {
+        element.style.display = 'none';
     }
 
     // Показать
-    protected setVisible(element: HTMLElement | null): void {
-        if (element) {
-            element.style.removeProperty('display');
-        }
+    protected setVisible(element: HTMLElement) {
+        element.style.removeProperty('display');
     }
 
-    // Задать изображение с подсказкой
-    protected setImage(element: HTMLImageElement | null, src: string, alt?: string): void {
+    // Установить изображение с алтернативным текстом
+    protected setImage(element: HTMLImageElement, src: string, alt?: string) {
         if (element) {
             element.src = src;
             if (alt) {
@@ -52,6 +45,7 @@ export abstract class Component<T> {
         }
     }
 
+    // Вернуть корневой DOM-элемент
     render(data?: Partial<T>): HTMLElement {
         Object.assign(this as object, data ?? {});
         return this.container;

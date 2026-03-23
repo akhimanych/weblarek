@@ -1,6 +1,7 @@
 import { EventEmitter } from '../base/events';
 import { Component } from '../base/components';
 import { ensureElement } from '../../utils/utils';
+import { TOrderPayment } from '../../types';
 
 interface IViewOrderModal {
     form: HTMLFormElement;
@@ -12,7 +13,6 @@ export class ViewOrderModal extends Component<IViewOrderModal> {
     protected _cardButton: HTMLButtonElement;
     protected _cashButton: HTMLButtonElement;
     protected _submitButton: HTMLButtonElement;
-    private _isPaymentSelected: boolean = false;
 
     constructor(container: HTMLTemplateElement, protected events: EventEmitter) {
         super(container);
@@ -24,25 +24,20 @@ export class ViewOrderModal extends Component<IViewOrderModal> {
         this._submitButton = ensureElement<HTMLButtonElement>('button[type="submit"]', container);
 
         this._cardButton.addEventListener('click', () => {
-            this.setPaymentMethod('card');
-            this.updateSubmitButtonState();
             this.events.emit('inputUser:changed', {
                 field: 'payment',
-                value: 'card',
+                value: 'card' as TOrderPayment,
             });
         });
 
         this._cashButton.addEventListener('click', () => {
-            this.setPaymentMethod('cash');
-            this.updateSubmitButtonState();
             this.events.emit('inputUser:changed', {
                 field: 'payment',
-                value: 'cash',
+                value: 'cash' as TOrderPayment,
             });
         });
 
         this._inputAddress.addEventListener('input', () => {
-            this.updateSubmitButtonState();
             this.events.emit('inputUser:changed', {
                 field: 'address',
                 value: this._inputAddress.value,
@@ -51,25 +46,31 @@ export class ViewOrderModal extends Component<IViewOrderModal> {
 
         this._submitButton.addEventListener('click', (e) => {
             e.preventDefault();
-            if (this.isFormValid()) {
-                this.events.emit('order:proceed');
-            }
+            this.events.emit('order:proceed');
+        });
+
+        this.events.on('order:valid', () => {
+            this._submitButton.disabled = false;
+            this._submitButton.classList.remove('button_disabled');
+        });
+
+        this.events.on('order:invalid', () => {
+            this._submitButton.disabled = true;
+            this._submitButton.classList.add('button_disabled');
+        });
+
+        this.events.on('order.payment:changed', ({ payment }: { payment: TOrderPayment }) => {
+            this.setPaymentMethod(payment);
+        });
+
+        this.events.on('order.address:changed', ({ address }: { address: string }) => {
+            this._inputAddress.value = address;
         });
     }
 
-    setPaymentMethod(method: 'card' | 'cash'): void {
-        this._cardButton.classList.toggle('button_alt-active', method === 'card');
-        this._cashButton.classList.toggle('button_alt-active', method === 'cash');
-        this._isPaymentSelected = true;
-    }
-
-    private updateSubmitButtonState(): void {
-        const isValid = this.isFormValid();
-        this._submitButton.disabled = !isValid;
-        this._submitButton.classList.toggle('button_disabled', !isValid);
-    }
-
-    private isFormValid(): boolean {
-        return this._isPaymentSelected && this._inputAddress.value.trim() !== '';
-    }
+setPaymentMethod(method: TOrderPayment): void {
+    const paymentMethod = method as 'card' | 'cash';
+    this._cardButton.classList.toggle('button_alt-active', paymentMethod === 'card');
+    this._cashButton.classList.toggle('button_alt-active', paymentMethod === 'cash');
+}
 }

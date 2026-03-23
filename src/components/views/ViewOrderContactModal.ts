@@ -1,6 +1,7 @@
 import { EventEmitter } from '../base/events';
 import { Component } from '../base/components';
 import { ensureElement } from '../../utils/utils';
+import { IValidationErrors } from '../../types';
 
 interface IViewOrderContactModal {
     form: HTMLFormElement;
@@ -23,7 +24,6 @@ export class ViewOrderContactModal extends Component<IViewOrderContactModal> {
                 field: 'email',
                 value: this._inputEmail.value,
             });
-            this.updateSubmitButtonState();
         });
 
         this._inputPhone.addEventListener('input', () => {
@@ -31,36 +31,56 @@ export class ViewOrderContactModal extends Component<IViewOrderContactModal> {
                 field: 'phone',
                 value: this._inputPhone.value,
             });
-            this.updateSubmitButtonState();
         });
 
         this._submitButton.addEventListener('click', (e) => {
             e.preventDefault();
-            if (this.isFormValid()) {
-                this.events.emit('finish:click');
-            }
+            this.events.emit('finish:click');
+        });
+
+        this.events.on('order:fullValid', () => {
+            this._submitButton.disabled = false;
+            this._submitButton.classList.remove('button_disabled');
+            this.clearErrors();
+        });
+
+        this.events.on('order:fullInvalid', (errors: IValidationErrors) => {
+            this._submitButton.disabled = true;
+            this._submitButton.classList.add('button_disabled');
+            this.showErrors(errors);
         });
     }
 
-    private updateSubmitButtonState(): void {
-        const isValid = this.isFormValid();
-        this._submitButton.disabled = !isValid;
-        this._submitButton.classList.toggle('button_disabled', !isValid);
+    private showErrors(errors: IValidationErrors): void {
+        if (errors.email) {
+            this._inputEmail.classList.add('input_error');
+            this._inputEmail.title = errors.email;
+        } else {
+            this._inputEmail.classList.remove('input_error');
+            this._inputEmail.title = '';
+        }
+        if (errors.phone) {
+            this._inputPhone.classList.add('input_error');
+            this._inputPhone.title = errors.phone;
+        } else {
+            this._inputPhone.classList.remove('input_error');
+            this._inputPhone.title = '';
+        }
     }
 
-    private isFormValid(): boolean {
-        const emailValid = this._inputEmail.value.trim() !== '';
-        const phoneValid = this._inputPhone.value.trim() !== '';
-        return emailValid && phoneValid;
+    private clearErrors(): void {
+        this._inputEmail.classList.remove('input_error');
+        this._inputPhone.classList.remove('input_error');
+        this._inputEmail.title = '';
+        this._inputPhone.title = '';
     }
 
     isLoading(state: boolean): void {
         if (state) {
             this._submitButton.textContent = 'Пожалуйста, ожидайте...';
-            this._submitButton.setAttribute('disabled', 'true');
+            this._submitButton.disabled = true;
         } else {
             this._submitButton.textContent = 'Оплатить';
-            this._submitButton.removeAttribute('disabled');
         }
     }
 }

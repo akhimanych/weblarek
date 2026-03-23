@@ -9,7 +9,6 @@ interface IViewSuccessModal {
 
 export class ViewSuccessModal extends Component<IViewSuccessModal> {
     protected _form: HTMLFormElement;
-    protected _image: string;
     protected _totalPrice: HTMLElement;
     protected _buttonClose: HTMLButtonElement;
 

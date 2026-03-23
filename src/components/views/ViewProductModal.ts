@@ -20,9 +20,7 @@ export class ViewProductModal extends Component<IViewProductModal> {
     protected _descriptionElement: HTMLElement;
     protected _priceElement: HTMLElement;
     protected _buttonElement: HTMLButtonElement;
-    protected _isActive: boolean;
     protected _product: IProduct;
-    protected _selectedCart: boolean = false;
 
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
@@ -38,73 +36,49 @@ export class ViewProductModal extends Component<IViewProductModal> {
         this._buttonElement = ensureElement<HTMLButtonElement>('.card__button', this.container);
 
         this._buttonElement.addEventListener('click', () => {
-            if (this._selectedCart) {
-                this.selectedCart = false;
-                this.events.emit('cart:delete-item', this._product);
-            } else {
-                this.selectedCart = true;
-                this.events.emit('cart:add-item', this._product);
-            }
+            this.events.emit('cart:toggle', this._product);
         });
     }
 
     set product(value: IProduct) {
         this._product = value;
-        if (!this._titleElement) return;
 
+        // Заполняем данные
         this._titleElement.textContent = value.title;
         this._descriptionElement.textContent = value.description;
         this._imageElement.src = value.image;
         this._imageElement.alt = value.title;
-        this._priceElement.textContent = `${value.price} синапсов`;
+        this._priceElement.textContent = value.price ? `${value.price} синапсов` : 'Бесценно';
 
+        // Категория
         this._categoryElement.textContent = value.category;
         this._categoryElement.classList.remove(
-            'card__category_soft',
-            'card__category_hard',
-            'card__category_other',
-            'card__category_additional',
-            'card__category_button'
+            'card__category_soft', 'card__category_hard', 'card__category_other',
+            'card__category_additional', 'card__category_button'
         );
+        const categoryClass = {
+            'софт-скил': 'card__category_soft',
+            'хард-скил': 'card__category_hard',
+            'другое': 'card__category_other',
+            'дополнительное': 'card__category_additional',
+            'кнопка': 'card__category_button'
+        }[value.category] || '';
+        if (categoryClass) this._categoryElement.classList.add(categoryClass);
 
-        if (value.category === 'софт-скил') {
-            this._categoryElement.classList.add('card__category_soft');
-        } else if (value.category === 'хард-скил') {
-            this._categoryElement.classList.add('card__category_hard');
-        } else if (value.category === 'другое') {
-            this._categoryElement.classList.add('card__category_other');
-        } else if (value.category === 'дополнительное') {
-            this._categoryElement.classList.add('card__category_additional');
-        } else if (value.category === 'кнопка') {
-            this._categoryElement.classList.add('card__category_button');
-        }
-
-        this._priceElement.textContent = value.price
-            ? value.price + ' синапсов'
-            : 'Бесценно';
-
+        // Кнопка по цене
         if (value.price === null) {
             this._buttonElement.classList.add('disabled');
             this._buttonElement.setAttribute('disabled', 'true');
             this._buttonElement.textContent = 'Недоступно';
         } else {
-            this._buttonElement.textContent = 'Купить';
             this._buttonElement.classList.remove('disabled');
             this._buttonElement.removeAttribute('disabled');
         }
     }
 
     set selectedCart(value: boolean) {
-        this._selectedCart = value;
-
-        if (this._product.price === null) {
-            this._buttonElement.classList.add('disabled');
-            this._buttonElement.setAttribute('disabled', 'true');
-            this._buttonElement.textContent = 'Недоступно';
-        } else {
-            this._buttonElement.textContent = this._selectedCart
-                ? 'Убрать из корзины'
-                : 'Купить';
-        }
+        if (this._product?.price === null) return;
+        
+        this._buttonElement.textContent = value ? 'Убрать из корзины' : 'Купить';
     }
 }
