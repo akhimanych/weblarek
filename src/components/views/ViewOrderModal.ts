@@ -2,6 +2,7 @@ import { EventEmitter } from '../base/events';
 import { Component } from '../base/components';
 import { ensureElement } from '../../utils/utils';
 import { TOrderPayment } from '../../types';
+import { IValidationErrors } from '../../types';
 
 interface IViewOrderModal {
     form: HTMLFormElement;
@@ -48,29 +49,44 @@ export class ViewOrderModal extends Component<IViewOrderModal> {
             e.preventDefault();
             this.events.emit('order:proceed');
         });
-
-        this.events.on('order:valid', () => {
-            this._submitButton.disabled = false;
-            this._submitButton.classList.remove('button_disabled');
-        });
-
-        this.events.on('order:invalid', () => {
-            this._submitButton.disabled = true;
-            this._submitButton.classList.add('button_disabled');
-        });
-
-        this.events.on('order.payment:changed', ({ payment }: { payment: TOrderPayment }) => {
-            this.setPaymentMethod(payment);
-        });
-
-        this.events.on('order.address:changed', ({ address }: { address: string }) => {
-            this._inputAddress.value = address;
-        });
     }
 
-setPaymentMethod(method: TOrderPayment): void {
-    const paymentMethod = method as 'card' | 'cash';
-    this._cardButton.classList.toggle('button_alt-active', paymentMethod === 'card');
-    this._cashButton.classList.toggle('button_alt-active', paymentMethod === 'cash');
-}
+    setFormValid(state: boolean): void {
+        this._submitButton.disabled = !state;
+        this._submitButton.classList.toggle('button_disabled', !state);
+    }
+
+    showErrors(errors: IValidationErrors): void {
+        if (errors.address) {
+            this._inputAddress.classList.add('input_error');
+            this._inputAddress.title = errors.address;
+        } else {
+            this._inputAddress.classList.remove('input_error');
+            this._inputAddress.title = '';
+        }
+        if (errors.payment) {
+            this._cardButton.title = errors.payment;
+            this._cashButton.title = errors.payment;
+        } else {
+            this._cardButton.title = '';
+            this._cashButton.title = '';
+        }
+    }
+
+    clearErrors(): void {
+        this._inputAddress.classList.remove('input_error');
+        this._inputAddress.title = '';
+        this._cardButton.title = '';
+        this._cashButton.title = '';
+    }
+
+    setPaymentMethod(method: TOrderPayment): void {
+        const paymentMethod = method as 'card' | 'cash';
+        this._cardButton.classList.toggle('button_alt-active', paymentMethod === 'card');
+        this._cashButton.classList.toggle('button_alt-active', paymentMethod === 'cash');
+    }
+
+    setAddress(address: string): void {
+        this._inputAddress.value = address;
+    }
 }

@@ -16,6 +16,7 @@ import { ViewCartModal } from './components/views/ViewCartModal';
 import { ViewOrderModal } from './components/views/ViewOrderModal';
 import { ViewOrderContactModal } from './components/views/ViewOrderContactModal';
 import { ViewSuccessModal } from './components/views/ViewSuccessModal';
+import { IValidationErrors } from './types/index';
 
 // Экземпляры моделей
 const events = new EventEmitter();
@@ -69,7 +70,7 @@ api.getProductList()
         console.error('Ошибка:', err);
     });
 
-// Обработчики событий
+// Обработчики событий (существующие)
 events.on('items:changed', () => {
     const itemsHTMLArray = productList.getItems().map((item) =>
         new ViewProductItem(cloneTemplate(itemTemplate), events).render({
@@ -135,8 +136,40 @@ events.on('order:proceed', () => {
     });
 });
 
-events.on('order:valid', () => console.log('Order валиден'));
-events.on('order:invalid', (errors) => console.log('Order ошибки:', errors));
+events.on('order:valid', () => {
+    formOrder.setFormValid(true);
+});
+
+events.on('order:invalid', (errors: IValidationErrors) => {
+    formOrder.setFormValid(false);
+    formOrder.showErrors(errors);
+});
+
+events.on('order:fullValid', () => {
+    formContacts.setFormValid(true);
+    formContacts.clearErrors();
+});
+
+events.on('order:fullInvalid', (errors: IValidationErrors) => {
+    formContacts.setFormValid(false);
+    formContacts.showErrors(errors);
+});
+
+events.on('order.payment:changed', ({ payment }: { payment: TOrderPayment }) => {
+    formOrder.setPaymentMethod(payment);
+});
+
+events.on('order.address:changed', ({ address }: { address: string }) => {
+    formOrder.setAddress(address);
+});
+
+events.on('order.email:changed', ({ email }: { email: string }) => {
+    formContacts.setEmail(email);
+});
+
+events.on('order.phone:changed', ({ phone }: { phone: string }) => {
+    formContacts.setPhone(phone);
+});
 
 events.on('finish:click', () => {
     const order = {
@@ -144,7 +177,9 @@ events.on('finish:click', () => {
         items: modelCart.getItems().map((item) => item.id),
         total: modelCart.getTotal(),
     } as IOrder;
-    formContacts.isLoading(true);
+    
+    formContacts.setLoading(true);
+    
     api
         .pushOrder(order)
         .then((data) => {
@@ -160,7 +195,7 @@ events.on('finish:click', () => {
             console.error('Ошибка:', err);
         })
         .then(() => {
-            formContacts.isLoading(false);
+            formContacts.setLoading(false);
         });
 });
 
